@@ -1,3 +1,5 @@
+# Written by: https://github.com/KalleHallden/
+
 extension_paths = {
         # No name
         'noname':  'other/uncategorized',

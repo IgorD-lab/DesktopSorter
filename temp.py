@@ -1,5 +1,7 @@
 import os
 import json
+import shutil
+import time
 from pathlib import Path
 from extensions_dict import extension_paths
 
@@ -7,6 +9,7 @@ from extensions_dict import extension_paths
 def main(): 
     desktop_path = get_desktop()
     folder_creator(desktop_path)
+    file_sorter(desktop_path)
 
 
 # Locate Desktop or create config for custom path
@@ -26,7 +29,8 @@ def get_desktop():
         # Save custom path to config file
         with open(config_file, "w") as f:
             json.dump({"desktop_path": str(desktop_path)}, f)
-    return desktop_path
+            
+    return Path(desktop_path)
 
 
 # Create folder structure
@@ -43,19 +47,27 @@ def folder_creator(desktop_path):
             if not folder_path.exists():
                 folder_path.mkdir(parents=True, exist_ok=True)
                 print(f"Created folder path: {folder_path}")
-            else:
-                print(f"Folder already exists: {folder_path}")
             
             
 # Sort files
 def file_sorter(desktop_path):
     if desktop_path.exists():
         print(f"Sorting files in {desktop_path}: ")
-        files = [file.name for file in desktop_path.iterdir() if file.is_file()]
+        files = [file for file in desktop_path.iterdir() if file.is_file()]
         for file in files:
-            extension = file.suffix
-            print(f"File: {file.name}, Extension: {extension}")
+            extension = file.suffix.lower()
+            if extension in extension_paths:
+                destination_folder = desktop_path / extension_paths[extension]
+            else:
+                destination_folder = desktop_path / extension_paths['noname']
         
+        # Possible replacement of folder_creator     
+        # destination_folder.mkdir(parents=True, exist_ok=True)
+        
+            destination_path = destination_folder / file.name 
+            shutil.move(str(file), str(destination_path))
+            print(f"Moved: {file.name} -> {destination_folder}")
+            
     else:
         print("Cannot List: The specified Desktop path does not exist.")
 
@@ -69,8 +81,6 @@ def list_desktop(desktop_path):
     else:
         print("Cannot List: The specified Desktop path does not exist.")
 
-
-            
 
 
 if __name__ == '__main__':
