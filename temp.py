@@ -1,15 +1,49 @@
 import os
 import json
 import shutil
-import time
 from pathlib import Path
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 from extensions_dict import extension_paths
+
+
+class DesktopEventHandler(FileSystemEventHandler):
+    def __init__(self, desktop_path):
+        self.desktop_path = desktop_path
+
+    def on_modified(self, event):
+        """This will be triggered when files on Desktop are modified/added/removed."""
+        if event.is_directory:
+            return  # Ignore directory events
+        print(f"File changed: {event.src_path}")
+        file_sorter(self.desktop_path)  # Run the file sorter whenever there's a change
+
+    def on_created(self, event):
+        """This will be triggered when a new file is created on Desktop."""
+        if event.is_directory:
+            return  # Ignore directory events
+        print(f"New file created: {event.src_path}")
+        file_sorter(self.desktop_path)  # Run the file sorter whenever a new file is created
 
 
 def main(): 
     desktop_path = get_desktop()
     folder_creator(desktop_path)
-    file_sorter(desktop_path)
+
+    # Set up the watchdog observer to monitor the Desktop directory
+    event_handler = DesktopEventHandler(desktop_path)
+    observer = Observer()
+    observer.schedule(event_handler, str(desktop_path), recursive=False)
+    observer.start()
+
+    print("Monitoring Desktop for changes... Press Ctrl+C to stop.")
+    try:
+        while True:
+            pass  # Keep the script running to monitor changes
+    except KeyboardInterrupt:
+        observer.stop()
+        print("Stopped monitoring.")
+    observer.join()
 
 
 # Locate Desktop or create config for custom path
