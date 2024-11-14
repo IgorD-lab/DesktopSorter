@@ -54,7 +54,10 @@ def get_desktop():
         with open(config_file, "r") as f:
             desktop_path = Path(json.load(f)["desktop_path"])
     else:
-        desktop_path = Path(os.path.join(os.getenv('USERPROFILE'), 'Desktop'))
+        try:
+            desktop_path = Path(os.path.join(os.getenv('USERPROFILE'), 'Desktop'))
+        except:
+            desktop_path = Path(os.path.join(os.path.expanduser("~"), 'Desktop'))
         
     if not desktop_path.exists():
         custom_path = input("Enter the Desktop path (e.g., D:/Users/YourUser/Desktop): ")
